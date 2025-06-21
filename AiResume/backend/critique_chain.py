@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
 load_dotenv()
 
 def get_critique_chain():
@@ -34,7 +33,7 @@ def get_critique_chain():
     ])
 
     chain = (
-        {"resume_text": lambda x: x["input"].split("Please analyze this resume:")[1].strip()} 
+        {"resume_text": lambda x: x["input"].split("Please analyse this resume:")[1].strip()} 
         | prompt 
         | model 
         | StrOutputParser()

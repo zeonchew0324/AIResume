@@ -53,3 +53,6 @@ if analyse_button and uploaded_file is not None:
 
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
+
+if analyse_button and uploaded_file is None:
+    st.warning("No resume found.")
