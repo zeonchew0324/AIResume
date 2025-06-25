@@ -114,3 +114,41 @@ def get_comparison_graph():
         })
 
         return {"recommendations": recommendations}
+    
+    #Node 4: Compile final output
+    def compile_output(state):
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are an expert resume analyst. Please compile the final output based on the analysis, evaluation, and recommendations."),
+            ("human", """
+            Previous Feedback:
+            {previous_feedback}
+
+            Improvement Analysis:
+            {improvements}
+
+            Evaluation of Effectiveness:
+            {current_feedback}
+
+            Recommendations for Further Improvement:
+            {recommendations}
+
+            Please compile a final output that summarizes the improvements made, evaluates their effectiveness, and provides actionable recommendations.
+            """)
+        ])
+
+        chain = prompt | model | StrOutputParser()
+
+        final_output = chain.invoke({
+            "previous_feedback": state.previous_feedback,
+            "improvements": state.improvements,
+            "current_feedback": state.current_feedback,
+            "recommendations": state.recommendations
+        })
+
+        return {"final_output": final_output}
+    
+    #Define workflow
+    workflow.add_node("analyze_improvements", analyze_improvements)
+    workflow.add_node("evaluate_effectiveness", evaluate_effectiveness)
+    workflow.add_node("generate_recommendations", generate_recommendations)
+    workflow.add_node("compile_output", compile_output)
