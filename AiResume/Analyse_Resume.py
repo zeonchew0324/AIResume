@@ -6,7 +6,6 @@ import io
 import PyPDF2
 
 from backend.critique_chain import get_critique_chain
-from backend.comparison import get_comparison_graph
 
 load_dotenv()
 
@@ -50,10 +49,22 @@ if analyse_button and uploaded_file is not None:
         })
 
         analysing_placeholder.empty()
-        st.write(response["output"])
+        feedback = response["output"]
+        st.markdown("### 🧠 AI Feedback")
+        st.write(feedback)
+
+        # Save feedback in session state
+        st.session_state["previous_feedback"] = feedback
+
+        # Display copy-friendly input
+        st.markdown("### 📋 Copy This Feedback")
+        st.text_area("Copy", feedback, height=250)
+
+        st.info("You can now go to the **Compare Resumes** page in the sidebar and paste this feedback.")
 
     except Exception as e:
         st.error(f"An error occurred while processing the file: {e}")
+
 
 if analyse_button and uploaded_file is None:
     st.warning("No resume found.")
