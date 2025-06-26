@@ -6,6 +6,7 @@ import io
 import PyPDF2
 
 from backend.critique_chain import get_critique_chain
+from backend.comparison import get_comparison_graph
 
 load_dotenv()
 

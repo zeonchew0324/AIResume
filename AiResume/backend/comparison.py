@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
-from landchain_core.runnables import RunnablePassthroug
+from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import StateGraph, END
 
 load_dotenv()
@@ -53,8 +53,8 @@ def get_comparison_graph():
             "previous_feedback": state.previous_feedback
         })
 
-        return {"analysis": analysis}
-    
+        return {"improvements": analysis}
+
     #Node 2 : Evaluate effectiveness of improvements 
     def evaluate_effectiveness(state):
         prompt = ChatPromptTemplate.from_messages([
@@ -70,7 +70,7 @@ def get_comparison_graph():
             {previous_feedback}
              
             Improvement Analysis:
-            {analysis}
+            {improvements}
              
             Please provide a detailed evaluation of how well the new resume addresses the previous feedback and improves upon the old resume.
             """)
@@ -152,3 +152,27 @@ def get_comparison_graph():
     workflow.add_node("evaluate_effectiveness", evaluate_effectiveness)
     workflow.add_node("generate_recommendations", generate_recommendations)
     workflow.add_node("compile_output", compile_output)
+
+    workflow.add_edge("analyze_improvements", "evaluate_effectiveness")
+    workflow.add_edge("evaluate_effectiveness", "generate_recommendations")
+    workflow.add_edge("generate_recommendations", "compile_output")
+    workflow.add_edge("compile_output", END)
+
+    workflow.set_entry_point("analyze_improvements")
+
+    graph = workflow.compile()
+
+    class GraphWrapper:
+        def invoke(self, input_dict):
+            state = GraphState(
+                old_resume=input_dict["old_resume"],
+                new_resume=input_dict["new_resume"],
+                previous_feedback=input_dict["previous_feedback"]
+            )
+            for event in graph.stream(state):
+                pass
+
+            final_state = event.state
+            return {"output": final_state.output}
+        
+    return GraphWrapper()
