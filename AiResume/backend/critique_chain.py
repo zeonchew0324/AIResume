@@ -13,7 +13,9 @@ def get_critique_chain():
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are an expert resume analyst. Please analyze the following resume and provide feedback on its strengths and weaknesses."),
         ("human", """
-        The user uploading this resume may be:
+        The user uploading this resume:
+        - Is targeting a specific job title or field in: {job_field}
+        - Has the following experience level: {experience_level}
         - A university student struggling to get their first internship
         - Someone who feels like they "have nothing" impressive to put on a resume yet
         - A candidate who may have done one or two projects or side gigs, but lacks confidence
@@ -32,8 +34,41 @@ def get_critique_chain():
         """),
     ])
 
+    def parse_input(input_dict):
+        # Extract resume text
+        if ":" in input_dict["input"]:
+            resume_text = input_dict["input"].split("Please analyse this resume:")[1].strip()
+        else:
+            resume_text = input_dict["input"]
+            
+        # Extract job field
+        job_field = "Not specified"
+        if "job_field" in input_dict and input_dict["job_field"]:
+            job_field = input_dict["job_field"]
+        elif "targeting " in input_dict["input"]:
+            try:
+                job_field = input_dict["input"].split("targeting ")[1].split(" positions")[0]
+            except:
+                pass
+                
+        # Extract experience level
+        experience_level = "Not specified"
+        if "experience_level" in input_dict and input_dict["experience_level"]:
+            experience_level = input_dict["experience_level"]
+        elif "at the " in input_dict["input"]:
+            try:
+                experience_level = input_dict["input"].split("at the ")[1].split(" experience level")[0]
+            except:
+                pass
+                
+        return {
+            "resume_text": resume_text,
+            "job_field": job_field,
+            "experience_level": experience_level
+        }
+
     chain = (
-        {"resume_text": lambda x: x["input"].split("Please analyse this resume:")[1].strip()} 
+        parse_input
         | prompt 
         | model 
         | StrOutputParser()
