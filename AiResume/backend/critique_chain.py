@@ -35,29 +35,27 @@ def get_critique_chain():
     ])
 
     def parse_input(input_dict):
-        # Extract resume text
-        if ":" in input_dict["input"]:
-            resume_text = input_dict["input"].split("Please analyse this resume:")[1].strip()
-        else:
-            resume_text = input_dict["input"]
-            
-        # Extract job field
-        job_field = "Not specified"
-        if "job_field" in input_dict and input_dict["job_field"]:
-            job_field = input_dict["job_field"]
-        elif "targeting " in input_dict["input"]:
+        resume_text = input_dict.get("input", "")
+        job_field = input_dict.get("job_field", "Not specified")
+        experience_level = input_dict.get("experience_level", "Not specified")
+        
+        if job_field == "Not specified" and "targeting" in resume_text:
             try:
-                job_field = input_dict["input"].split("targeting ")[1].split(" positions")[0]
+                parts = resume_text.split("targeting ")
+                if len(parts) > 1:
+                    second_part = parts[1]
+                    if " positions" in second_part:
+                        job_field = second_part.split(" positions")[0]
             except:
                 pass
                 
-        # Extract experience level
-        experience_level = "Not specified"
-        if "experience_level" in input_dict and input_dict["experience_level"]:
-            experience_level = input_dict["experience_level"]
-        elif "at the " in input_dict["input"]:
+        if experience_level == "Not specified" and "at the " in resume_text:
             try:
-                experience_level = input_dict["input"].split("at the ")[1].split(" experience level")[0]
+                parts = resume_text.split("at the ")
+                if len(parts) > 1:
+                    second_part = parts[1]
+                    if " experience level" in second_part:
+                        experience_level = second_part.split(" experience level")[0]
             except:
                 pass
                 

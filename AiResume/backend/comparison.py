@@ -4,6 +4,8 @@ from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import StateGraph, END
+from typing import Optional
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -15,14 +17,14 @@ def get_comparison_graph():
     )
 
     #Define State
-    class GraphState:
+    class GraphState(BaseModel):
         old_resume: str
         new_resume: str
         previous_feedback: str
-        current_feedback: str = None
-        improvements: str = None
-        recommendations: str = None
-        output: str = None
+        current_feedback: Optional[str] = None
+        improvements: Optional[str] = None
+        recommendations: Optional[str] = None
+        output: Optional[str] = None
 
     workflow = StateGraph(GraphState)
 
@@ -85,7 +87,7 @@ def get_comparison_graph():
             "improvements": state.improvements,
         })
 
-        return {"evaluation": evaluation}
+        return {"current_feedback": evaluation}
 
     #Node 3: Generate recommendations for further improvement
     def generate_recommendations(state):
@@ -145,7 +147,7 @@ def get_comparison_graph():
             "recommendations": state.recommendations
         })
 
-        return {"final_output": final_output}
+        return {"output": final_output}
     
     #Define workflow
     workflow.add_node("analyze_improvements", analyze_improvements)
@@ -169,10 +171,9 @@ def get_comparison_graph():
                 new_resume=input_dict["new_resume"],
                 previous_feedback=input_dict["previous_feedback"]
             )
-            for event in graph.stream(state):
-                pass
+            
 
-            final_state = event.state
-            return {"output": final_state.output}
-        
+            result = graph.invoke(state)
+            return {"output": result["output"]}
+
     return GraphWrapper()
