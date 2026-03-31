@@ -7,30 +7,17 @@ import { Loader2, Upload, FileText, RotateCcw } from "lucide-react";
 
 type AppState = "input" | "loading" | "results";
 
-interface Section {
-  title: string;
-  content: string;
-}
-
-function parseSections(text: string): Section[] {
-  const parts = text.split(/\n(?=##\s)/);
-  return parts
-    .filter((p) => p.trim().startsWith("##"))
-    .map((part) => {
-      const firstNewline = part.indexOf("\n");
-      const title = part.slice(2, firstNewline).trim();
-      const content = part.slice(firstNewline + 1).trim();
-      return { title, content };
-    });
-}
-
 export default function AnalyzeResume() {
   const [state, setState] = useState<AppState>("input");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [sections, setSections] = useState<Section[]>([]);
-  const [rawOutput, setRawOutput] = useState("");
+
+  const [matchScore, setMatchScore] = useState<number>(0);
+  const [feedback, setFeedback] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [missingKeywords, setMissingKeywords] = useState<string[]>([]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canSubmit = resumeFile && jobDescription.trim() && jobTitle.trim();
@@ -50,9 +37,11 @@ export default function AnalyzeResume() {
         body: formData,
       });
       const data = await res.json();
-      const output = data.output as string;
-      setRawOutput(output);
-      setSections(parseSections(output));
+      setMatchScore(data.match_score);
+      setFeedback(data.feedback);
+      setSuggestions(data.suggestions);
+      setMissingKeywords(data.missing_keywords);
+
       setState("results");
     } catch (err) {
       console.error(err);
@@ -65,8 +54,10 @@ export default function AnalyzeResume() {
     setResumeFile(null);
     setJobDescription("");
     setJobTitle("");
-    setSections([]);
-    setRawOutput("");
+    setMatchScore(0);
+    setFeedback([]);
+    setSuggestions([]);
+    setMissingKeywords([]);
   };
 
   return (
@@ -155,46 +146,69 @@ export default function AnalyzeResume() {
               </Button>
             </div>
 
-            {state === "results" && sections.length > 0 && (
+            {state === "results" && (
               <div className="mt-10">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Feedback</h2>
+                  <h2 className="text-lg font-semibold">Analysis Results</h2>
                   <Button variant="outline" size="sm" onClick={reset}>
                     <RotateCcw className="size-4" />
                     Analyze Again
                   </Button>
                 </div>
-                <Tabs defaultValue={sections[0].title}>
-                  <TabsList className="flex-wrap h-auto gap-1 mb-4">
-                    {sections.map((s) => (
-                      <TabsTrigger key={s.title} value={s.title}>
-                        {s.title}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  {sections.map((s) => (
-                    <TabsContent key={s.title} value={s.title}>
-                      <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
-                        {s.content}
-                      </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </div>
-            )}
 
-            {state === "results" && sections.length === 0 && rawOutput && (
-              <div className="mt-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Feedback</h2>
-                  <Button variant="outline" size="sm" onClick={reset}>
-                    <RotateCcw className="size-4" />
-                    Analyze Again
-                  </Button>
-                </div>
-                <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
-                  {rawOutput}
-                </div>
+                <Tabs defaultValue="score">
+                  <TabsList className="flex-wrap h-auto gap-1 mb-4">
+                    <TabsTrigger value="score">Score</TabsTrigger>
+                    <TabsTrigger value="feedback">Feedback</TabsTrigger>
+                    <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                    <TabsTrigger value="keywords">Missing Keywords</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="score">
+                    <div className="text-center py-8">
+                      <div className="text-5xl font-bold text-primary mb-2">
+                        {matchScore.toFixed(0)}/100
+                      </div>
+                      <p className="text-muted-foreground">Match Score</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="feedback">
+                    <div className="space-y-2">
+                      {feedback.map((item, i) => (
+                        <div key={i} className="text-sm leading-relaxed">
+                          • {item}
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="suggestions">
+                    <div className="space-y-3">
+                      {suggestions.map((item, i) => (
+                        <div
+                          key={i}
+                          className="text-sm leading-relaxed p-3 bg-muted rounded-md"
+                        >
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="keywords">
+                    <div className="flex flex-wrap gap-2">
+                      {missingKeywords.map((keyword, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-destructive/10 text-destructive text-sm rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
           </CardContent>
