@@ -6,13 +6,14 @@ from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import StateGraph, END
 from typing import Optional
 from pydantic import BaseModel
+from app.config import MODEL_NAME
 
 load_dotenv()
 
 def get_comparison_graph():
     #Define model
     model = ChatOpenAI(
-        model="gpt-4o",
+        model=MODEL_NAME,
         temperature=0
     )
 

@@ -9,11 +9,10 @@ router = APIRouter()
 async def analyze_resume(
     resume: UploadFile = File(...), 
     job_description: str = Form(...), 
-    experience_level: str = Form(...), 
-    job_field: str = Form(...)
+    job_title: str = Form(...),
 ) -> ResumeAnalysisResponse:
     try:
-        result = await analyze_resume_service(resume, job_description, experience_level, job_field)
-        return {"output": result}
+        result = await analyze_resume_service(resume, job_description, job_title)
+        return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
