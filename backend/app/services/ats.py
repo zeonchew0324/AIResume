@@ -1,0 +1,2 @@
+async def analyze_resume(resume: UploadFile = File(...), job_description: str = Form(...), experience_level: str = Form(...), job_field: str = Form(...)):
+    return {"output": "Resume analyzed successfully"}
