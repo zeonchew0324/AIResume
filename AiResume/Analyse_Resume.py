@@ -5,7 +5,7 @@ from openai import OpenAI
 import io
 import PyPDF2
 
-from backend.critique_chain import get_critique_chain
+from backend.app.graphs.critique_graph import get_critique_chain
 
 load_dotenv()
 
