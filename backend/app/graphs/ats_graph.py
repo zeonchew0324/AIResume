@@ -25,4 +25,7 @@ def ats_chain(job_title: str, job_description: str, resume_text: str):
         "resume_text": resume_text
     })
 
+    if not result:
+        raise ValueError("No response from the model")
+
     return result 

@@ -10,5 +10,6 @@ async def analyze_resume_service(resume: UploadFile = File(...), job_description
         raise ValueError("Resume is empty or unreadable")
     
     result = ats_chain(job_title=job_title, job_description=job_description, resume_text=resume_content)
+    # print("ATS Chain Result:", result)
     
     return ResumeAnalysisResponse(**result)

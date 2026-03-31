@@ -14,8 +14,10 @@ export default function AnalyzeResume() {
   const [jobTitle, setJobTitle] = useState("");
 
   const [matchScore, setMatchScore] = useState<number>(0);
-  const [feedback, setFeedback] = useState<string[]>([]);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<
+    Array<{ focus_area: string; advice: string }>
+  >([]);
   const [missingKeywords, setMissingKeywords] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,6 +39,7 @@ export default function AnalyzeResume() {
         body: formData,
       });
       const data = await res.json();
+      console.log("API Response:", data);
       setMatchScore(data.match_score);
       setFeedback(data.feedback);
       setSuggestions(data.suggestions);
@@ -55,7 +58,7 @@ export default function AnalyzeResume() {
     setJobDescription("");
     setJobTitle("");
     setMatchScore(0);
-    setFeedback([]);
+    setFeedback("");
     setSuggestions([]);
     setMissingKeywords([]);
   };
@@ -174,13 +177,7 @@ export default function AnalyzeResume() {
                   </TabsContent>
 
                   <TabsContent value="feedback">
-                    <div className="space-y-2">
-                      {feedback.map((item, i) => (
-                        <div key={i} className="text-sm leading-relaxed">
-                          • {item}
-                        </div>
-                      ))}
-                    </div>
+                    <div className="text-sm leading-relaxed">{feedback}</div>
                   </TabsContent>
 
                   <TabsContent value="suggestions">
@@ -190,7 +187,12 @@ export default function AnalyzeResume() {
                           key={i}
                           className="text-sm leading-relaxed p-3 bg-muted rounded-md"
                         >
-                          {item}
+                          <div className="font-medium mb-1">
+                            {item.focus_area}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {item.advice}
+                          </div>
                         </div>
                       ))}
                     </div>
