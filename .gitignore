@@ -1,4 +1,29 @@
-AiResume/uv.lock
-AiResume/.env
-AiResume/backend/__pycache__/critique_chain.cpython-313.pyc
-AiResume/backend/__pycache__/comparison.cpython-313.pyc
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Env
+.env
+.env.local
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
