@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, FileText, RotateCcw } from "lucide-react";
+import { ScoreChart } from "@/components/ScoreChart";
 
 type AppState = "input" | "loading" | "results";
 
@@ -61,6 +62,7 @@ export default function AnalyzeResume() {
     setFeedback("");
     setSuggestions([]);
     setMissingKeywords([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -147,72 +149,73 @@ export default function AnalyzeResume() {
                   "Analyze Resume"
                 )}
               </Button>
-            </div>
+              {state === "results" && (
+                <div className="mt-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Analysis Results</h2>
+                    <Button variant="outline" size="sm" onClick={reset}>
+                      <RotateCcw className="size-4" />
+                      Analyze Again
+                    </Button>
+                  </div>
 
-            {state === "results" && (
-              <div className="mt-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Analysis Results</h2>
-                  <Button variant="outline" size="sm" onClick={reset}>
-                    <RotateCcw className="size-4" />
-                    Analyze Again
-                  </Button>
-                </div>
+                  <Tabs defaultValue="score">
+                    <TabsList className="flex-wrap h-auto gap-1 mb-4">
+                      <TabsTrigger value="score">Score</TabsTrigger>
+                      <TabsTrigger value="feedback">Feedback</TabsTrigger>
+                      <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                      <TabsTrigger value="keywords">
+                        Missing Keywords
+                      </TabsTrigger>
+                    </TabsList>
 
-                <Tabs defaultValue="score">
-                  <TabsList className="flex-wrap h-auto gap-1 mb-4">
-                    <TabsTrigger value="score">Score</TabsTrigger>
-                    <TabsTrigger value="feedback">Feedback</TabsTrigger>
-                    <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
-                    <TabsTrigger value="keywords">Missing Keywords</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="score">
-                    <div className="text-center py-8">
-                      <div className="text-5xl font-bold text-primary mb-2">
-                        {matchScore.toFixed(0)}/100
+                    <TabsContent value="score" className="min-h-[300px]">
+                      <div className="flex flex-col items-center py-4 gap-2">
+                        <ScoreChart score={matchScore} />
+                        <p className="text-muted-foreground text-sm">
+                          ATS Match Score
+                        </p>
                       </div>
-                      <p className="text-muted-foreground">Match Score</p>
-                    </div>
-                  </TabsContent>
+                    </TabsContent>
 
-                  <TabsContent value="feedback">
-                    <div className="text-sm leading-relaxed">{feedback}</div>
-                  </TabsContent>
+                    <TabsContent value="feedback" className="min-h-[300px]">
+                      <div className="text-sm leading-relaxed">{feedback}</div>
+                    </TabsContent>
 
-                  <TabsContent value="suggestions">
-                    <div className="space-y-3">
-                      {suggestions.map((item, i) => (
-                        <div
-                          key={i}
-                          className="text-sm leading-relaxed p-3 bg-muted rounded-md"
-                        >
-                          <div className="font-medium mb-1">
-                            {item.focus_area}
+                    <TabsContent value="suggestions" className="min-h-[300px]">
+                      <div className="space-y-3">
+                        {suggestions.map((item, i) => (
+                          <div
+                            key={i}
+                            className="text-sm leading-relaxed p-3 bg-muted rounded-md"
+                          >
+                            <div className="font-medium mb-1">
+                              {item.focus_area}
+                            </div>
+                            <div className="text-muted-foreground">
+                              {item.advice}
+                            </div>
                           </div>
-                          <div className="text-muted-foreground">
-                            {item.advice}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
+                        ))}
+                      </div>
+                    </TabsContent>
 
-                  <TabsContent value="keywords">
-                    <div className="flex flex-wrap gap-2">
-                      {missingKeywords.map((keyword, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 bg-destructive/10 text-destructive text-sm rounded-full"
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
+                    <TabsContent value="keywords" className="min-h-[300px]">
+                      <div className="flex flex-wrap gap-2">
+                        {missingKeywords.map((keyword, i) => (
+                          <span
+                            key={i}
+                            className="px-3 py-1 bg-destructive/10 text-destructive text-sm rounded-full"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
