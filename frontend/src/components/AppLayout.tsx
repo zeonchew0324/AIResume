@@ -22,7 +22,7 @@ export default function AppLayout() {
   return (
     <SidebarProvider className="h-svh">
       <Sidebar collapsible="none">
-        <SidebarHeader>
+        <SidebarHeader className="border-b border-sidebar-border">
           <div className="px-2 py-3">
             <h2 className="text-base font-semibold tracking-tight text-sidebar-foreground">
               AIResume
