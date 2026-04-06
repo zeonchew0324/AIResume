@@ -66,7 +66,7 @@ export default function AnalyzeResume() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-left">
+    <div className="min-h-screen text-left">
       <div className="max-w-2xl mx-auto px-4 py-10">
         <header className="mb-8">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -78,7 +78,7 @@ export default function AnalyzeResume() {
           </p>
         </header>
 
-        <Card>
+        <Card className="bg-white/5 backdrop-blur-md border-white/10">
           <CardContent>
             <div className="space-y-5">
               <div>
