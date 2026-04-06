@@ -11,5 +11,12 @@ class ResumeAnalysisResponse(BaseModel):
     missing_keywords: list[str] 
     suggestions: list[dict]
     score_breakdown : list[ScoreBreakdown]
-    
 
+class ResumeImprovementChange(BaseModel):
+    section: str
+    change: str
+    
+class ResumeImprovementResponse(BaseModel):
+    improved_resume: str
+    changes: list[ResumeImprovementChange]
+    keywords_added: list[str]

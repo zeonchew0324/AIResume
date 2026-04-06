@@ -106,169 +106,178 @@ export default function AnalyzeResume() {
           </p>
         </header>
 
-        <Card className="bg-white/5 backdrop-blur-md border-white/10">
-          <CardContent>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  Resume (PDF)
-                </label>
-                <div
-                  className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf"
-                    className="hidden"
-                    onChange={(e) => setResumeFile(e.target.files?.[0] ?? null)}
-                  />
-                  {resumeFile ? (
-                    <div className="flex items-center justify-center gap-2 text-sm text-foreground">
-                      <FileText className="size-4" />
-                      {resumeFile.name}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                      <Upload className="size-5" />
-                      <span className="text-sm">Click to upload PDF</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  Job Title
-                </label>
-                <input
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="e.g. Backend Engineer, Data Science"
-                  value={jobTitle}
-                  onChange={(e) => setJobTitle(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1.5">
-                  Job Description
-                </label>
-                <Textarea
-                  placeholder="Paste the full job description here..."
-                  rows={6}
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                />
-              </div>
-
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={!canSubmit || state === "loading"}
-                onClick={handleAnalyze}
-              >
-                {state === "loading" ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  "Analyze Resume"
-                )}
+        {state === "results" ? (
+          // Resume Analysis Results
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-600">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Analysis Results</h2>
+              <Button variant="outline" size="sm" onClick={reset}>
+                <RotateCcw className="size-4" />
+                Analyze Again
               </Button>
-              {error && (
-                <p className="text-sm text-destructive text-center">{error}</p>
-              )}
-              {state === "results" && (
-                <div className="mt-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">Analysis Results</h2>
-                    <Button variant="outline" size="sm" onClick={reset}>
-                      <RotateCcw className="size-4" />
-                      Analyze Again
-                    </Button>
-                  </div>
+            </div>
 
-                  <Tabs defaultValue="score">
-                    <TabsList className="flex-wrap h-auto gap-1 mb-4">
-                      <TabsTrigger value="score">Score</TabsTrigger>
-                      <TabsTrigger value="feedback">Feedback</TabsTrigger>
-                      <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
-                      <TabsTrigger value="keywords">
-                        Missing Keywords
-                      </TabsTrigger>
-                    </TabsList>
+            <Card className="bg-white/5 backdrop-blur-md border-white/10">
+              <CardContent>
+                <Tabs defaultValue="score">
+                  <TabsList className="flex-wrap h-auto gap-1 mb-4">
+                    <TabsTrigger value="score">Score</TabsTrigger>
+                    <TabsTrigger value="feedback">Feedback</TabsTrigger>
+                    <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                    <TabsTrigger value="keywords">Missing Keywords</TabsTrigger>
+                  </TabsList>
 
-                    <TabsContent value="score" className="min-h-[300px]">
-                      <div className="flex flex-col items-center py-4 gap-2">
-                        <ScoreChart score={matchScore} />
-                        <p className="text-muted-foreground text-sm">
-                          ATS Match Score
-                        </p>
-                      </div>
-                      {scoreBreakdown.length > 0 && (
-                        <div className="mt-4 space-y-4">
-                          {scoreBreakdown.map((item) => (
-                            <div key={item.category} className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span className="font-medium">
-                                  {item.category}
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {item.score}/100
-                                </span>
-                              </div>
-                              <Progress value={item.score} />
-                              <p className="text-xs text-muted-foreground">
-                                {item.reason}
-                              </p>
+                  <TabsContent value="score" className="min-h-[300px]">
+                    <div className="flex flex-col items-center py-4 gap-2">
+                      <ScoreChart score={matchScore} />
+                      <p className="text-muted-foreground text-sm">
+                        ATS Match Score
+                      </p>
+                    </div>
+                    {scoreBreakdown.length > 0 && (
+                      <div className="mt-4 space-y-4">
+                        {scoreBreakdown.map((item) => (
+                          <div key={item.category} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium">
+                                {item.category}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {item.score}/100
+                              </span>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="feedback" className="min-h-[300px]">
-                      <div className="text-sm leading-relaxed">{feedback}</div>
-                    </TabsContent>
-
-                    <TabsContent value="suggestions" className="min-h-[300px]">
-                      <div className="space-y-3">
-                        {suggestions.map((item, i) => (
-                          <div
-                            key={i}
-                            className="text-sm leading-relaxed p-3 bg-muted rounded-md"
-                          >
-                            <div className="font-medium mb-1">
-                              {item.focus_area}
-                            </div>
-                            <div className="text-muted-foreground">
-                              {item.advice}
-                            </div>
+                            <Progress value={item.score} />
+                            <p className="text-xs text-muted-foreground">
+                              {item.reason}
+                            </p>
                           </div>
                         ))}
                       </div>
-                    </TabsContent>
+                    )}
+                  </TabsContent>
 
-                    <TabsContent value="keywords" className="min-h-[300px]">
-                      <div className="flex flex-wrap gap-2">
-                        {missingKeywords.map((keyword, i) => (
-                          <span
-                            key={i}
-                            className="px-3 py-1 bg-destructive/10 text-destructive text-sm rounded-full"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
+                  <TabsContent value="feedback" className="min-h-[300px]">
+                    <div className="text-sm leading-relaxed">{feedback}</div>
+                  </TabsContent>
+
+                  <TabsContent value="suggestions" className="min-h-[300px]">
+                    <div className="space-y-3">
+                      {suggestions.map((item, i) => (
+                        <div
+                          key={i}
+                          className="text-sm leading-relaxed p-3 bg-muted rounded-md"
+                        >
+                          <div className="font-medium mb-1">
+                            {item.focus_area}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {item.advice}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="keywords" className="min-h-[300px]">
+                    <div className="flex flex-wrap gap-2">
+                      {missingKeywords.map((keyword, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-destructive/10 text-destructive text-sm rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          // Input Form
+          <Card className="bg-white/5 backdrop-blur-md border-white/10 animate-in fade-in duration-200">
+            <CardContent>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Resume (PDF)
+                  </label>
+                  <div
+                    className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      onChange={(e) =>
+                        setResumeFile(e.target.files?.[0] ?? null)
+                      }
+                    />
+                    {resumeFile ? (
+                      <div className="flex items-center justify-center gap-2 text-sm text-foreground">
+                        <FileText className="size-4" />
+                        {resumeFile.name}
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                        <Upload className="size-5" />
+                        <span className="text-sm">Click to upload PDF</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Job Title
+                  </label>
+                  <input
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    placeholder="e.g. Backend Engineer, Data Science"
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">
+                    Job Description
+                  </label>
+                  <Textarea
+                    placeholder="Paste the full job description here..."
+                    rows={6}
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                  />
+                </div>
+
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={!canSubmit || state === "loading"}
+                  onClick={handleAnalyze}
+                >
+                  {state === "loading" ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    "Analyze Resume"
+                  )}
+                </Button>
+                {error && (
+                  <p className="text-sm text-destructive text-center">
+                    {error}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
