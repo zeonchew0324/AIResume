@@ -5,8 +5,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, FileText, RotateCcw } from "lucide-react";
 import { ScoreChart } from "@/components/ScoreChart";
+import { Progress } from "@/components/ui/progress";
 
 type AppState = "input" | "loading" | "results";
+type ScoreBreakdown = {
+  category: string;
+  score: number;
+  reason: string;
+};
 
 export default function AnalyzeResume() {
   const [state, setState] = useState<AppState>("input");
@@ -21,6 +27,7 @@ export default function AnalyzeResume() {
     Array<{ focus_area: string; advice: string }>
   >([]);
   const [missingKeywords, setMissingKeywords] = useState<string[]>([]);
+  const [scoreBreakdown, setScoreBreakdown] = useState<ScoreBreakdown[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +66,7 @@ export default function AnalyzeResume() {
       setFeedback(data.feedback);
       setSuggestions(data.suggestions);
       setMissingKeywords(data.missing_keywords);
-
+      setScoreBreakdown(data.score_breakdown);
       setState("results");
     } catch (err) {
       console.error(err);
@@ -81,6 +88,7 @@ export default function AnalyzeResume() {
     setFeedback("");
     setSuggestions([]);
     setMissingKeywords([]);
+    setScoreBreakdown([]);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -199,6 +207,26 @@ export default function AnalyzeResume() {
                           ATS Match Score
                         </p>
                       </div>
+                      {scoreBreakdown.length > 0 && (
+                        <div className="mt-4 space-y-4">
+                          {scoreBreakdown.map((item) => (
+                            <div key={item.category} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium">
+                                  {item.category}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {item.score}/100
+                                </span>
+                              </div>
+                              <Progress value={item.score} />
+                              <p className="text-xs text-muted-foreground">
+                                {item.reason}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </TabsContent>
 
                     <TabsContent value="feedback" className="min-h-[300px]">

@@ -14,6 +14,12 @@ SCORING RUBRIC (0-100):
 - 50-74: Partial match. Has foundational skills but misses key requirements or lacks required seniority.
 - 0-49: Poor match. Fundamentally misaligned with the role's core requirements.
 
+SUB-SCORE CATEGORIES (each scored 0-100 independently):
+- Technical Skills: Match on domain-specific technological skills and tools required in the JD.
+- Experience: Alignment of years of experience and seniority level with the role's requirements.
+- Keywords: Coverage of key terms, phrases from the JD that the ATS will scan for.
+- Soft Skills: Presence of communication, leadership, teamwork skills as relevant to the role.
+
 OUTPUT FORMAT:
 You must respond ONLY with a valid JSON object. Do not include any introductory text, markdown formatting blocks (like ```json), or explanations outside of the JSON structure. Use the exact schema below:
 
@@ -29,6 +35,12 @@ You must respond ONLY with a valid JSON object. Do not include any introductory 
       "focus_area": "<string: e.g., 'Impact Metrics', 'Skill Visibility'>",
       "advice": "<string: Specific, actionable advice on how to rewrite or reformat to improve ATS parsing>"
     }}
+  ],
+  "score_breakdown": [
+    {{ "category": "Technical Skills", "score": <int>, "reason": "<one sentence why>" }},
+    {{ "category": "Experience", "score": <int>, "reason": "<one sentence why>" }},
+    {{ "category": "Keywords", "score": <int>, "reason": "<one sentence why>" }},
+    {{ "category": "Soft Skills", "score": <int>, "reason": "<one sentence why>" }}
   ]
 }}
 """
