@@ -1,8 +1,9 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request 
 from app.utils.pdf_parser import extract_text_from_pdf
 from app.services.analyze_resume import analyze_resume_service
 from app.services.improve_resume import improve_resume_service 
 from app.models.ats import ResumeAnalysisResponse, ResumeImprovementResponse
+from app.limiter import limiter
 
 
 import logging 
@@ -12,7 +13,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/api/analyze")
+@limiter.limit("5/minute")
 async def analyze_resume(
+    request: Request,
     resume: UploadFile = File(...), 
     job_description: str = Form(...), 
     job_title: str = Form(...),
@@ -26,7 +29,9 @@ async def analyze_resume(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/api/improve")
+@limiter.limit("5/minute")
 async def improve_resume(
+    request: Request,
     resume: UploadFile = File(...),
     job_description: str = Form(...),
     job_title: str = Form(...),

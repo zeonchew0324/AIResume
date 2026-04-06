@@ -4,22 +4,22 @@ from langchain_core.output_parsers import JsonOutputParser
 from app.config import MODEL_NAME, OPENAI_API_KEY
 from app.prompts.improve_prompt import IMPROVE_PROMPT
 
-def improve_resume_chain(job_title: str, job_description: str, resume_text: str, extra_info: str = ""):
+async def improve_resume_chain(job_title: str, job_description: str, resume_text: str, extra_info: str = ""):
     model = ChatOpenAI(
         model=MODEL_NAME,
-        temperature=0,  
-        api_key=OPENAI_API_KEY  
+        temperature=0,
+        api_key=OPENAI_API_KEY
     )
 
     prompt = ChatPromptTemplate.from_template(IMPROVE_PROMPT)
 
     chain = (
         prompt
-        | model 
+        | model
         | JsonOutputParser()
     )
 
-    result = chain.invoke({
+    result = await chain.ainvoke({
         "job_title": job_title,
         "job_description": job_description,
         "resume_text": resume_text,

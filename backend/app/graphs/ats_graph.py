@@ -3,29 +3,33 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 from app.config import MODEL_NAME, OPENAI_API_KEY
 from app.prompts.ats_prompt import ATS_PROMPT
+import asyncio
 
-def ats_chain(job_title: str, job_description: str, resume_text: str):
+async def ats_chain(job_title: str, job_description: str, resume_text: str):
     model = ChatOpenAI(
         model=MODEL_NAME,
         temperature=0,
-        api_key=OPENAI_API_KEY  
+        api_key=OPENAI_API_KEY
     )
 
     prompt = ChatPromptTemplate.from_template(ATS_PROMPT)
 
     chain = (
         prompt
-        | model 
+        | model
         | JsonOutputParser()
     )
 
-    result = chain.invoke({
-        "job_title": job_title,
-        "job_description": job_description,
-        "resume_text": resume_text
-    })
+    result = await asyncio.wait_for(
+        chain.ainvoke({
+            "job_title": job_title,
+            "job_description": job_description,
+            "resume_text": resume_text
+        }),
+        timeout=20.0 #seconds
+    ) 
 
     if not result:
         raise ValueError("No response from the model")
 
-    return result 
+    return result

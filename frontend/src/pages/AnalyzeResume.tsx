@@ -43,11 +43,16 @@ export default function AnalyzeResume() {
     formData.append("job_title", jobTitle);
     formData.append("job_description", jobDescription);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
+
     try {
       const res = await fetch("http://localhost:8000/api/analyze", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -69,7 +74,13 @@ export default function AnalyzeResume() {
       setScoreBreakdown(data.score_breakdown);
       setState("results");
     } catch (err) {
+      // Handle Request Timeout Error
       console.error(err);
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("Request Timed Out. Please Try Again.");
+        return;
+      }
+
       const message =
         err instanceof Error
           ? err.message
