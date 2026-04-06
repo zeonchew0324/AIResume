@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Upload, FileText, RotateCcw } from "lucide-react";
+import { Loader2, Upload, FileText, RotateCcw, Download } from "lucide-react";
+import { Document, Packer, Paragraph, TextRun } from "docx";
+import { saveAs } from "file-saver";
 
 type AppState = "input" | "loading" | "results";
 
@@ -20,9 +22,23 @@ export default function ImproveResume() {
   >([]);
   const [keywordsAdded, setKeywordsAdded] = useState<string[]>([]);
   const [extraInfo, setExtraInfo] = useState("");
-  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  const downloadDocx = async () => {
+    const doc = new Document({
+      sections: [
+        {
+          children: improvedResume
+            .split("\n")
+            .map((line) => new Paragraph({ children: [new TextRun(line)] })),
+        },
+      ],
+    });
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, "improved_resume.docx");
+  };
 
   const canSubmit = resumeFile && jobDescription.trim() && jobTitle.trim();
 
@@ -118,7 +134,7 @@ export default function ImproveResume() {
                   </TabsList>
 
                   <TabsContent value="improved-resume">
-                    <div className="flex justify-end mb-2">
+                    <div className="flex justify-end mb-2 gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -130,6 +146,14 @@ export default function ImproveResume() {
                       >
                         {copied ? "Copied!" : "Copy"}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadDocx}
+                      >
+                        <Download className="size-4" />
+                        Download DOCX
+                      </Button>
                     </div>
                     <div className="whitespace-pre-wrap text-sm text-foreground max-h-[500px] overflow-y-auto">
                       {improvedResume}
@@ -139,18 +163,28 @@ export default function ImproveResume() {
                   <TabsContent value="changes-made">
                     <div className="space-y-3">
                       {changes.map((change, idx) => (
-                        <div key={idx} className="p-3 bg-muted rounded-md text-sm">
+                        <div
+                          key={idx}
+                          className="p-3 bg-muted rounded-md text-sm"
+                        >
                           <span className="font-medium">{change.section}</span>
-                          <p className="text-muted-foreground mt-0.5">{change.change}</p>
+                          <p className="text-muted-foreground mt-0.5">
+                            {change.change}
+                          </p>
                         </div>
                       ))}
                     </div>
                     {keywordsAdded.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-sm font-medium mb-2">Keywords Added</p>
+                        <p className="text-sm font-medium mb-2">
+                          Keywords Added
+                        </p>
                         <div className="flex flex-wrap gap-2">
                           {keywordsAdded.map((kw, i) => (
-                            <span key={i} className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full">
+                            <span
+                              key={i}
+                              className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full"
+                            >
                               {kw}
                             </span>
                           ))}
@@ -224,7 +258,8 @@ export default function ImproveResume() {
 
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
-                    Additional Information <span className="text-muted-foreground">(optional)</span>
+                    Additional Information{" "}
+                    <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <Textarea
                     placeholder="e.g. hackathons, side projects, certifications, open source contributions..."

@@ -37,10 +37,10 @@ You must respond ONLY with a valid JSON object. Do not include any introductory 
     }}
   ],
   "score_breakdown": [
-    {{ "category": "Technical Skills", "score": <int>, "reason": "<one sentence why>" }},
-    {{ "category": "Experience", "score": <int>, "reason": "<one sentence why>" }},
-    {{ "category": "Keywords", "score": <int>, "reason": "<one sentence why>" }},
-    {{ "category": "Soft Skills", "score": <int>, "reason": "<one sentence why>" }}
+    {{ "category": "Technical Skills", "score": 78, "reason": "Strong Python and FastAPI experience but Docker and Kubernetes not mentioned despite being listed as required." }},
+    {{ "category": "Experience", "score":73, "reason": "Tom has 4 years of backend experience which does not align with the 5 years experience requirement. However, his experience as a Founder & CEO showcased his leadership." }},
+    {{ "category": "Keywords", "score": 85, "reason": "Good coverage of core terms but missing 'distributed systems' and 'gRPC' which appear frequently in the JD." }},
+    {{ "category": "Soft Skills", "score": 42, "reason": "No mention of cross-functional collaboration, mentoring, or stakeholder communication despite the role emphasising these." }}
   ]
 }}
 """
