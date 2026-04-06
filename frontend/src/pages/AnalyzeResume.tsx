@@ -14,6 +14,7 @@ export default function AnalyzeResume() {
   const [jobDescription, setJobDescription] = useState("");
   const [jobTitle, setJobTitle] = useState("");
 
+  const [error, setError] = useState<string | null>(null);
   const [matchScore, setMatchScore] = useState<number>(0);
   const [feedback, setFeedback] = useState<string>("");
   const [suggestions, setSuggestions] = useState<
@@ -28,6 +29,7 @@ export default function AnalyzeResume() {
   const handleAnalyze = async () => {
     if (!canSubmit) return;
     setState("loading");
+    setError(null);
 
     const formData = new FormData();
     formData.append("resume", resumeFile!);
@@ -39,6 +41,18 @@ export default function AnalyzeResume() {
         method: "POST",
         body: formData,
       });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const errorDetail = body.detail ?? "";
+        if (errorDetail === "Resume is empty or unreadable") {
+          throw new Error(
+            "We couldn't read your PDF. Make sure it contains selectable text, not a scanned image.",
+          );
+        }
+        throw new Error("Analysis failed. Please try again.");
+      }
+
       const data = await res.json();
       console.log("API Response:", data);
       setMatchScore(data.match_score);
@@ -49,6 +63,11 @@ export default function AnalyzeResume() {
       setState("results");
     } catch (err) {
       console.error(err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
+      setError(message);
       setState("input");
     }
   };
@@ -62,6 +81,7 @@ export default function AnalyzeResume() {
     setFeedback("");
     setSuggestions([]);
     setMissingKeywords([]);
+    setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -149,6 +169,9 @@ export default function AnalyzeResume() {
                   "Analyze Resume"
                 )}
               </Button>
+              {error && (
+                <p className="text-sm text-destructive text-center">{error}</p>
+              )}
               {state === "results" && (
                 <div className="mt-10">
                   <div className="flex items-center justify-between mb-4">
