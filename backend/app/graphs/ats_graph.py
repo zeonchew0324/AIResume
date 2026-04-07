@@ -3,14 +3,11 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 from app.config import MODEL_NAME, OPENAI_API_KEY
 from app.prompts.ats_prompt import ATS_PROMPT
+from app.config import get_llm
 import asyncio
 
 async def ats_chain(job_title: str, job_description: str, resume_text: str):
-    model = ChatOpenAI(
-        model=MODEL_NAME,
-        temperature=0,
-        api_key=OPENAI_API_KEY
-    )
+    model = get_llm()
 
     prompt = ChatPromptTemplate.from_template(ATS_PROMPT)
 

@@ -26,10 +26,13 @@ async def analyze_resume(
         job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
         result = await analyze_resume_service(resume, job_description, job_title)
         return result
+    except ValueError as e:
+        logger.error(f"Validation error in analyze: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error occurred while analyzing resume: {str(e)}")
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
 
 
 @router.post("/api/improve")
@@ -47,7 +50,10 @@ async def improve_resume(
         job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
         result = await improve_resume_service(resume, job_description, job_title, extra_info)
         return result
+    except ValueError as e:
+        logger.error(f"Validation error in improve: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error occurred while improving resume: {str(e)}")
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail="Improvement failed. Please try again.")
