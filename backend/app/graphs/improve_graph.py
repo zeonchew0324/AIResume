@@ -19,14 +19,18 @@ async def improve_resume_chain(job_title: str, job_description: str, resume_text
         | JsonOutputParser()
     )
 
-    result = await chain.ainvoke({
-        "job_title": job_title,
-        "job_description": job_description,
-        "resume_text": resume_text,
-        "extra_info": extra_info
-    })
+    try:
+        result = await chain.ainvoke({
+            "job_title": job_title,
+            "job_description": job_description,
+            "resume_text": resume_text,
+            "extra_info": extra_info
+        })
 
-    if not result:
-        raise ValueError("No response from the model")
+        if not result:
+            raise ValueError("No response from the model")
+        
+    except Exception as e:
+        raise ValueError(f"Error during resume improvement: {str(e)}")
 
     return result

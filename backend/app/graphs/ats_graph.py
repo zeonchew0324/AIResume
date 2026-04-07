@@ -20,16 +20,20 @@ async def ats_chain(job_title: str, job_description: str, resume_text: str):
         | JsonOutputParser()
     )
 
-    result = await asyncio.wait_for(
-        chain.ainvoke({
-            "job_title": job_title,
-            "job_description": job_description,
-            "resume_text": resume_text
-        }),
-        timeout=20.0 #seconds
-    ) 
+    try:
+        result = await asyncio.wait_for(
+            chain.ainvoke({
+                "job_title": job_title,
+                "job_description": job_description,
+                "resume_text": resume_text
+            }),
+            timeout=20.0 #seconds
+        ) 
 
-    if not result:
-        raise ValueError("No response from the model")
+        if not result:
+            raise ValueError("No response from the model")
+        
+    except Exception as e:
+        raise ValueError(f"Error during ATS analysis: {str(e)}")
 
     return result
