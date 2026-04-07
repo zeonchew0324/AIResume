@@ -8,3 +8,6 @@ PyPDF2
 python-dotenv
 pydantic
 slowapi
+pytest
+httpx
+pytest-asyncio
