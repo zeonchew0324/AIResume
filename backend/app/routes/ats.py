@@ -45,7 +45,7 @@ async def improve_resume(
     extra_info: str = Form("")
 ) -> ResumeImprovementResponse:
     try:
-        extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH)
+        extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH, required=False)
         job_description = clean_input(job_description, MAX_JD_LENGTH)
         job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
         result = await improve_resume_service(resume, job_description, job_title, extra_info)
