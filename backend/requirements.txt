@@ -11,3 +11,6 @@ slowapi
 pytest
 httpx
 pytest-asyncio
+sqlalchemy[asyncio]
+asyncpg
+alembic

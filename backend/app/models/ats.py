@@ -20,3 +20,6 @@ class ResumeImprovementResponse(BaseModel):
     improved_resume: str
     changes: list[ResumeImprovementChange]
     keywords_added: list[str]
+
+class CoverLetterResponse(BaseModel):
+    cover_letter: str

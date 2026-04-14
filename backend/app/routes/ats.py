@@ -2,7 +2,8 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
 from app.utils.pdf_parser import extract_text_from_pdf
 from app.services.analyze_resume import analyze_resume_service
 from app.services.improve_resume import improve_resume_service 
-from app.models.ats import ResumeAnalysisResponse, ResumeImprovementResponse
+from app.services.cover_letter import generate_coverletter
+from app.models.ats import CoverLetterResponse, ResumeAnalysisResponse, ResumeImprovementResponse
 from app.limiter import limiter
 from app.utils.input_cleaner import clean_input, MAX_EXTRA_INFO_LENGTH, MAX_JD_LENGTH, MAX_JOB_TITLE_LENGTH
 
@@ -57,3 +58,28 @@ async def improve_resume(
         logger.error(f"Error occurred while improving resume: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail="Improvement failed. Please try again.")
+    
+@router.post("/api/coverletter")
+@limiter.limit("5/minute")
+async def create_coverletter(
+    request: Request,
+    resume: UploadFile = File(...),
+    job_title: str = Form(...),
+    job_description: str = Form(...),
+    company_name: str = Form(...),
+    extra_info: str = Form("")
+) -> CoverLetterResponse:
+    try:
+        extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH, required=False)
+        job_description = clean_input(job_description, MAX_JD_LENGTH)
+        job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
+        company_name = clean_input(company_name, MAX_JOB_TITLE_LENGTH)
+        cover_letter = await generate_coverletter(resume, job_title, job_description, company_name, extra_info)
+        return CoverLetterResponse(cover_letter=cover_letter)
+    except ValueError as e:
+        logger.error(f"Validation error in create_coverletter: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error occurred while creating cover letter: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Cover letter generation failed. Please try again.")

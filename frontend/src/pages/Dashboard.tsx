@@ -8,12 +8,13 @@ import {
   SidebarProvider,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { FileSearch, Wand2, LayoutDashboard } from "lucide-react";
+import { FileSearch, Wand2, LayoutDashboard, Book } from "lucide-react";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, href: "#" },
   { label: "Analyze Resume", icon: FileSearch, href: "#analyze" },
   { label: "Improve Resume", icon: Wand2, href: "#improve" },
+  { label: "Cover Letter", icon: Book, href: "#cover-letter" },
 ];
 
 export default function Dashboard() {

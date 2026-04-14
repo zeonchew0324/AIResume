@@ -5,8 +5,9 @@ from app.config import MODEL_NAME, OPENAI_API_KEY
 from app.prompts.improve_prompt import IMPROVE_PROMPT
 from app.config import get_llm
 
+model = get_llm()
+
 async def improve_resume_chain(job_title: str, job_description: str, resume_text: str, extra_info: str = ""):
-    model = get_llm()
 
     prompt = ChatPromptTemplate.from_template(IMPROVE_PROMPT)
 

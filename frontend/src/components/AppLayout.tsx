@@ -1,5 +1,11 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { FileSearch, Wand2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  FileSearch,
+  Wand2,
+  ChevronLeft,
+  ChevronRight,
+  Book,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -34,6 +40,7 @@ function SidebarCollapseButton() {
 const navItems = [
   { label: "Analyze Resume", icon: FileSearch, to: "/analyze" },
   { label: "Improve Resume", icon: Wand2, to: "/improve" },
+  { label: "Cover Letter", icon: Book, to: "/cover-letter" },
 ];
 
 export default function AppLayout() {
