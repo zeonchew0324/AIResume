@@ -13,3 +13,4 @@ httpx
 pytest-asyncio
 sqlalchemy[asyncio]
 asyncpg
+psycopg2-binary
