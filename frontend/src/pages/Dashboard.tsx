@@ -15,6 +15,7 @@ const navItems = [
   { label: "Analyze Resume", icon: FileSearch, href: "#analyze" },
   { label: "Improve Resume", icon: Wand2, href: "#improve" },
   { label: "Cover Letter", icon: Book, href: "#cover-letter" },
+  { label: "My Resume", icon: Book, href: "#my-resume" },
 ];
 
 export default function Dashboard() {

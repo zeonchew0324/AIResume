@@ -41,6 +41,7 @@ const navItems = [
   { label: "Analyze Resume", icon: FileSearch, to: "/analyze" },
   { label: "Improve Resume", icon: Wand2, to: "/improve" },
   { label: "Cover Letter", icon: Book, to: "/cover-letter" },
+  { label: "My Resume", icon: Book, to: "/my-resume" },
 ];
 
 export default function AppLayout() {

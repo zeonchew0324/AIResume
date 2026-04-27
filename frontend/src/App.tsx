@@ -3,6 +3,7 @@ import AppLayout from "./components/AppLayout";
 import AnalyzeResume from "./pages/AnalyzeResume";
 import ImproveResume from "./pages/ImproveResume";
 import CoverLetter from "./pages/CoverLetter";
+import MyResume from "./pages/MyResume";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route path="/analyze" element={<AnalyzeResume />} />
           <Route path="/improve" element={<ImproveResume />} />
           <Route path="/cover-letter" element={<CoverLetter />} />
+          <Route path="/my-resume" element={<MyResume />} />
         </Route>
       </Routes>
     </BrowserRouter>

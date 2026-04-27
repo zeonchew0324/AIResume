@@ -1,11 +1,15 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request 
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request, Depends  
 from app.utils.pdf_parser import extract_text_from_pdf
 from app.services.analyze_resume import analyze_resume_service
 from app.services.improve_resume import improve_resume_service 
 from app.services.cover_letter import generate_coverletter
+from app.services.resume_service import get_saved_resumes, delete_resume_service, upload_resumes
 from app.models.ats import CoverLetterResponse, ResumeAnalysisResponse, ResumeImprovementResponse
 from app.limiter import limiter
 from app.utils.input_cleaner import clean_input, MAX_EXTRA_INFO_LENGTH, MAX_JD_LENGTH, MAX_JOB_TITLE_LENGTH
+from app.db.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 
 import logging 
@@ -13,6 +17,10 @@ import traceback
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+@router.post("/health")
+async def health_check():
+    return {"status": "ok"}
 
 @router.post("/api/analyze")
 @limiter.limit("5/minute")
@@ -83,3 +91,42 @@ async def create_coverletter(
         logger.error(f"Error occurred while creating cover letter: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail="Cover letter generation failed. Please try again.")
+    
+@router.post("/api/resumes")
+async def upload_resume(db: AsyncSession = Depends(get_db), name: str = Form(...), resume: UploadFile = File(...), user_id: str = Form(...)):
+    try:
+        resume = await upload_resumes(db, name, resume, user_id)
+        return {"message": "Resume uploaded successfully", "resume_id": str(resume.id)}
+    except Exception as e:
+        logger.error(f"Error occurred while uploading resume: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Failed to upload resume. Please try again.")
+
+
+@router.get("/api/resumes")
+async def list_resumes(db: AsyncSession = Depends(get_db)):
+    try:
+        resumes =  await get_saved_resumes(db)
+        return {"resumes": [{
+            "id": str(r.id),
+            "name": r.name,
+            "created_at": r.created_at.isoformat()
+        } for r in resumes ]}
+    except Exception as e:
+        logger.error(f"Error occurred while fetching resumes: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Failed to fetch resumes. Please try again.")
+
+@router.delete("/api/resumes/{resume_id}")
+async def delete_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        if await delete_resume_service(db, resume_id):
+            return {"message": "Resume deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Resume cannot be deleted")
+    except HTTPException as e:
+        raise 
+    except Exception as e:
+        logger.error(f"Error occurred while deleting resume: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Failed to delete resume. Please try again.")
