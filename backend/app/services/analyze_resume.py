@@ -1,5 +1,5 @@
 from fastapi import UploadFile
-from app.models.ats import ResumeAnalysisResponse
+from app.models.schemas import ResumeAnalysisResponse
 from app.utils.pdf_parser import extract_text_from_pdf
 from app.graphs.ats_graph import ats_chain
 

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch
-from app.models.ats import ResumeAnalysisResponse
+from app.models.schemas import ResumeAnalysisResponse
 
 
 MOCK_ANALYSIS = ResumeAnalysisResponse(
