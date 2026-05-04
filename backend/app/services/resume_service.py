@@ -9,6 +9,9 @@ import io
 async def get_saved_resumes(db: AsyncSession) -> list[Resume]:
     result = await db.execute(select(Resume).order_by(Resume.created_at.desc()))
 
+    if not result:
+        return []
+
     return result.scalars().all()
 
 async def upload_resumes(db: AsyncSession, name: str, resume: UploadFile, user_id: str | None = None) -> Resume:

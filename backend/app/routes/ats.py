@@ -7,8 +7,6 @@ from app.limiter import limiter
 from app.utils.input_cleaner import clean_input, MAX_EXTRA_INFO_LENGTH, MAX_JD_LENGTH, MAX_JOB_TITLE_LENGTH
 
 
-
-
 import logging 
 import traceback
 

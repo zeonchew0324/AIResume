@@ -25,11 +25,12 @@ async def upload_resume(db: AsyncSession = Depends(get_db), name: str = Form(...
 async def list_resumes(db: AsyncSession = Depends(get_db)):
     try:
         resumes =  await get_saved_resumes(db)
+        
         return {"resumes": [{
             "id": str(r.id),
             "name": r.name,
             "created_at": r.created_at.isoformat()
-        } for r in resumes ]}
+        } for r in resumes ] if resumes else [] }
     except Exception as e:
         logger.error(f"Error occurred while fetching resumes: {str(e)}")
         logger.error(traceback.format_exc())
