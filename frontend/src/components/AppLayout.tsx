@@ -5,7 +5,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Book,
+  LogOut,
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import {
   Sidebar,
   SidebarContent,
@@ -77,6 +79,13 @@ export default function AppLayout() {
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border">
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors group-data-[state=collapsed]:justify-center"
+          >
+            <LogOut className="size-4 shrink-0" />
+            <span className="group-data-[state=collapsed]:hidden">Sign out</span>
+          </button>
           <SidebarCollapseButton />
         </SidebarFooter>
       </Sidebar>

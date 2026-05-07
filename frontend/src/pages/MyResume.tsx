@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,8 @@ type SavedResume = {
 };
 
 export default function MyResume() {
-  const [listState, setListState] = useState<ListState>("loading");
+  const { user } = useAuth();
+  const [listState, setListState] = useState<ListState>("loaded");
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -46,12 +48,12 @@ export default function MyResume() {
 
   useEffect(() => {
     fetchResumes();
-  }, []);
+  }, [user?.id]);
 
   const fetchResumes = async () => {
-    setListState("loading");
+    if (!user) return;
     try {
-      const res = await fetch("/api/resumes");
+      const res = await fetch(`/api/resumes?user_id=${user.id}`);
       if (!res.ok) throw new Error();
       const data = await res.json().catch(() => ({}));
       setResumes(data.resumes ?? []);
@@ -78,6 +80,7 @@ export default function MyResume() {
     const formData = new FormData();
     formData.append("resume", resumeFile!);
     formData.append("name", resumeName.trim());
+    formData.append("user_id", user!.id);
 
     try {
       const res = await fetch("/api/resumes", {
@@ -104,7 +107,9 @@ export default function MyResume() {
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/resumes/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/resumes/${id}?user_id=${user!.id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error();
       setResumes((prev) => prev.filter((r) => r.id !== id));
     } finally {
@@ -219,7 +224,10 @@ export default function MyResume() {
           if (!open) resetSheet();
         }}
       >
-        <SheetContent side="bottom" className="rounded-t-2xl max-w-lg mx-auto left-0 right-0 px-6 pb-8">
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl max-w-lg mx-auto left-0 right-0 px-6 pb-8"
+        >
           <SheetHeader className="px-0 pb-2">
             <SheetTitle>Add a resume</SheetTitle>
             <SheetDescription>
