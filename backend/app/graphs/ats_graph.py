@@ -1,11 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import JsonOutputParser
-from app.config import MODEL_NAME, OPENAI_API_KEY
 from app.config import get_llm
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List
-from langchain_core.runnables import RunnablePassthrough
 from app.prompts.ats_prompt import NODE_1_EXTRACTION_PROMPT, NODE_2_SYNTHESIS_PROMPT
 import asyncio
 
@@ -28,28 +24,29 @@ async def ats_chain(job_title: str, job_description: str, resume_text: str):
     node_1 = prompt_1 | model.with_structured_output(ExtractionResponse)
     node_2 = prompt_2 | model.with_structured_output(FinalResponse)
 
-    chain = (
-        {
-            "extracted_data": node_1, 
-            "job_title": RunnablePassthrough() | (lambda x: x["job_title"])
-        }
-        | node_2
-    )
+    async def run_chain():
+        extraction = await node_1.ainvoke({
+            "job_title": job_title,
+            "job_description": job_description,
+            "resume_text": resume_text
+        })
+        final = await node_2.ainvoke({
+            "job_title": job_title,
+            "extracted_data": extraction.model_dump_json()
+        })
+        return extraction, final
 
     try:
-        result = await asyncio.wait_for(
-            chain.ainvoke({
-                "job_title": job_title,
-                "job_description": job_description,
-                "resume_text": resume_text
-            }),
-            timeout=30.0 #seconds
-        ) 
+        extraction, final = await asyncio.wait_for(run_chain(), timeout=30.0) #seconds
 
-        if not result:
+        if not extraction or not final:
             raise ValueError("No response from the model")
-        
+
     except Exception as e:
         raise ValueError(f"Error during ATS analysis: {str(e)}")
 
-    return result
+    return {
+        **final.model_dump(),
+        "missing_keywords": extraction.missing_keywords,
+        "score_breakdown": extraction.score_breakdown,
+    }
