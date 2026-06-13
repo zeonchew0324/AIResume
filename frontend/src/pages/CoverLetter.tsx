@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
+import { authHeaders } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 
@@ -54,6 +55,7 @@ export default function CoverLetter() {
     try {
       const res = await fetch("http://localhost:8000/api/coverletter", {
         method: "POST",
+        headers: await authHeaders(),
         body: formData,
       });
 

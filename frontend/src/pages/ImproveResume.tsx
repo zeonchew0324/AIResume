@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, FileText, RotateCcw, Download } from "lucide-react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
+import { authHeaders } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 
@@ -56,6 +57,7 @@ export default function ImproveResume() {
     try {
       const res = await fetch("http://localhost:8000/api/improve", {
         method: "POST",
+        headers: await authHeaders(),
         body: formData,
       });
 

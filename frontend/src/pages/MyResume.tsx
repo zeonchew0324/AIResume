@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { authHeaders } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,7 @@ export default function MyResume() {
   const fetchResumes = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/resumes?user_id=${user.id}`);
+      const res = await fetch("/api/resumes", { headers: await authHeaders() });
       if (!res.ok) throw new Error();
       const data = await res.json().catch(() => ({}));
       setResumes(data.resumes ?? []);
@@ -80,11 +81,11 @@ export default function MyResume() {
     const formData = new FormData();
     formData.append("resume", resumeFile!);
     formData.append("name", resumeName.trim());
-    formData.append("user_id", user!.id);
 
     try {
       const res = await fetch("/api/resumes", {
         method: "POST",
+        headers: await authHeaders(),
         body: formData,
       });
 
@@ -107,8 +108,9 @@ export default function MyResume() {
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/resumes/${id}?user_id=${user!.id}`, {
+      const res = await fetch(`/api/resumes/${id}`, {
         method: "DELETE",
+        headers: await authHeaders(),
       });
       if (!res.ok) throw new Error();
       setResumes((prev) => prev.filter((r) => r.id !== id));

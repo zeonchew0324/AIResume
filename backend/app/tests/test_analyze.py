@@ -1,5 +1,7 @@
 import pytest
 from unittest.mock import patch
+from app.main import app
+from app.auth import get_current_user_id
 from app.models.schemas import ResumeAnalysisResponse
 
 
@@ -54,3 +56,9 @@ async def test_analyze_missing_field(client):
         data={"job_description": "Some job description"},
     )
     assert response.status_code == 422
+
+# Test 5: Missing auth token → 401
+async def test_analyze_requires_auth(client):
+    app.dependency_overrides.pop(get_current_user_id, None)
+    response = await client.post("/api/analyze", files=make_files(), data=make_data())
+    assert response.status_code == 401

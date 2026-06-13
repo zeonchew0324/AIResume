@@ -17,18 +17,18 @@ SUB-SCORE CATEGORIES (each scored 0-100 independently):
 OUTPUT FORMAT:
 You must respond ONLY with a valid JSON object. Do not include any introductory text or markdown blocks. Use the exact schema below:
 
-{
+{{
   "missing_keywords": [
     "<string: exact keyword or phrase from the JD>",
     "<string: exact keyword or phrase from the JD>"
   ],
   "score_breakdown": [
-    { "category": "Technical Skills", "score": 78, "reason": "Strong Python and FastAPI experience but Docker and Kubernetes not mentioned despite being listed as required." },
-    { "category": "Experience", "score":73, "reason": "Tom has 4 years of backend experience which does not align with the 5 years experience requirement. However, his experience as a Founder & CEO showcased his leadership." },
-    { "category": "Keywords", "score": 85, "reason": "Good coverage of core terms but missing 'distributed systems' and 'gRPC' which appear frequently in the JD." },
-    { "category": "Soft Skills", "score": 42, "reason": "No mention of cross-functional collaboration, mentoring, or stakeholder communication despite the role emphasising these." }
+    {{ "category": "Technical Skills", "score": 78, "reason": "Strong Python and FastAPI experience but Docker and Kubernetes not mentioned despite being listed as required." }},
+    {{ "category": "Experience", "score":73, "reason": "Tom has 4 years of backend experience which does not align with the 5 years experience requirement. However, his experience as a Founder & CEO showcased his leadership." }},
+    {{ "category": "Keywords", "score": 85, "reason": "Good coverage of core terms but missing 'distributed systems' and 'gRPC' which appear frequently in the JD." }},
+    {{ "category": "Soft Skills", "score": 42, "reason": "No mention of cross-functional collaboration, mentoring, or stakeholder communication despite the role emphasising these." }}
   ]
-}
+}}
 """
 
 NODE_2_SYNTHESIS_PROMPT = """
@@ -48,14 +48,14 @@ SCORING RUBRIC (0-100) FOR FINAL MATCH SCORE:
 OUTPUT FORMAT:
 You must respond ONLY with a valid JSON object. Do not include any introductory text or markdown blocks. Use the exact schema below:
 
-{
+{{
   "match_score": <int>,
   "feedback": "<string: A concise 2-3 sentence objective summary explaining the primary reason for the final score, referencing the ATS extraction data>",
   "suggestions": [
-    {
+    {{
       "focus_area": "<string: e.g., 'Impact Metrics', 'Skill Visibility'>",
       "advice": "<string: Specific, actionable advice on how to rewrite or reformat to improve ATS parsing and recruiter appeal>"
-    }
+    }}
   ]
-}
+}}
 """
