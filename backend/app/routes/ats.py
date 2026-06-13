@@ -1,7 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request, Depends  
+from fastapi import APIRouter, Form, HTTPException, Request, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.analyze_resume import analyze_resume_service
-from app.services.improve_resume import improve_resume_service 
+from app.services.improve_resume import improve_resume_service
 from app.services.cover_letter import generate_coverletter
+from app.services.resume_service import get_resume_text
+from app.db.database import get_db
 from app.models.schemas import CoverLetterResponse, ResumeAnalysisResponse, ResumeImprovementResponse
 from app.limiter import limiter
 from app.auth import get_current_user_id
@@ -22,15 +25,17 @@ async def health_check():
 @limiter.limit("5/minute")
 async def analyze_resume(
     request: Request,
-    resume: UploadFile = File(...),
+    resume_id: str = Form(...),
     job_description: str = Form(...),
     job_title: str = Form(...),
     user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
 ) -> ResumeAnalysisResponse:
     try:
         job_description = clean_input(job_description, MAX_JD_LENGTH)
         job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
-        result = await analyze_resume_service(resume, job_description, job_title)
+        resume_text = await get_resume_text(db, resume_id, user_id)
+        result = await analyze_resume_service(resume_text, job_description, job_title)
         return result
     except ValueError as e:
         logger.error(f"Validation error in analyze: {str(e)}")
@@ -45,17 +50,19 @@ async def analyze_resume(
 @limiter.limit("5/minute")
 async def improve_resume(
     request: Request,
-    resume: UploadFile = File(...),
+    resume_id: str = Form(...),
     job_description: str = Form(...),
     job_title: str = Form(...),
     extra_info: str = Form(""),
     user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
 ) -> ResumeImprovementResponse:
     try:
         extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH, required=False)
         job_description = clean_input(job_description, MAX_JD_LENGTH)
         job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
-        result = await improve_resume_service(resume, job_description, job_title, extra_info)
+        resume_text = await get_resume_text(db, resume_id, user_id)
+        result = await improve_resume_service(resume_text, job_description, job_title, extra_info)
         return result
     except ValueError as e:
         logger.error(f"Validation error in improve: {str(e)}")
@@ -69,19 +76,21 @@ async def improve_resume(
 @limiter.limit("5/minute")
 async def create_coverletter(
     request: Request,
-    resume: UploadFile = File(...),
+    resume_id: str = Form(...),
     job_title: str = Form(...),
     job_description: str = Form(...),
     company_name: str = Form(...),
     extra_info: str = Form(""),
     user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
 ) -> CoverLetterResponse:
     try:
         extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH, required=False)
         job_description = clean_input(job_description, MAX_JD_LENGTH)
         job_title = clean_input(job_title, MAX_JOB_TITLE_LENGTH)
         company_name = clean_input(company_name, MAX_JOB_TITLE_LENGTH)
-        cover_letter = await generate_coverletter(resume, job_title, job_description, company_name, extra_info)
+        resume_text = await get_resume_text(db, resume_id, user_id)
+        cover_letter = await generate_coverletter(resume_text, job_title, job_description, company_name, extra_info)
         return CoverLetterResponse(cover_letter=cover_letter)
     except ValueError as e:
         logger.error(f"Validation error in create_coverletter: {str(e)}")

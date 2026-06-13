@@ -18,33 +18,34 @@ MOCK_ANALYSIS = ResumeAnalysisResponse(
     ]
 )
 
-def make_files():
-    return {"resume": ("resume.pdf", b"%PDF-1.4 fake content", "application/pdf")}
-
 def make_data():
-    return {"job_title": "Backend Engineer", "job_description": "We need a Python developer with FastAPI and Kubernetes experience."}
+    return {
+        "resume_id": "00000000-0000-0000-0000-000000000001",
+        "job_title": "Backend Engineer",
+        "job_description": "We need a Python developer with FastAPI and Kubernetes experience.",
+    }
 
 # Test 1: Happy path
 @patch("app.routes.ats.analyze_resume_service", return_value=MOCK_ANALYSIS)
 async def test_analyze_success(mock_service, client):
-    response = await client.post("/api/analyze", files=make_files(), data=make_data())
+    response = await client.post("/api/analyze", data=make_data())
     data = response.json()
     assert response.status_code == 200
     assert data["match_score"] == 78.0
     assert data["missing_keywords"] == ["Kubernetes", "gRPC"]
     assert len(data["score_breakdown"]) == 4
 
-# Test 2: Unreadable PDF → 400
+# Test 2: Empty/unreadable resume → 400
 @patch("app.routes.ats.analyze_resume_service", side_effect=ValueError("Resume is empty or unreadable"))
-async def test_analyze_unreadable_pdf(mock_service, client):
-    response = await client.post("/api/analyze", files=make_files(), data=make_data())
+async def test_analyze_unreadable_resume(mock_service, client):
+    response = await client.post("/api/analyze", data=make_data())
     assert response.status_code == 400
     assert response.json()["detail"] == "Resume is empty or unreadable"
 
 # Test 3: Internal error → 500, raw error not exposed
 @patch("app.routes.ats.analyze_resume_service", side_effect=Exception("OpenAI rate limit exceeded"))
 async def test_analyze_server_error(mock_service, client):
-    response = await client.post("/api/analyze", files=make_files(), data=make_data())
+    response = await client.post("/api/analyze", data=make_data())
     assert response.status_code == 500
     assert response.json()["detail"] == "Analysis failed. Please try again."
     assert "OpenAI" not in response.json()["detail"]
@@ -52,7 +53,6 @@ async def test_analyze_server_error(mock_service, client):
 # Test 4: Missing required field → 422
 async def test_analyze_missing_field(client):
     response = await client.post("/api/analyze",
-        files={"resume": ("resume.pdf", b"%PDF-1.4 fake", "application/pdf")},
         data={"job_description": "Some job description"},
     )
     assert response.status_code == 422
@@ -60,5 +60,5 @@ async def test_analyze_missing_field(client):
 # Test 5: Missing auth token → 401
 async def test_analyze_requires_auth(client):
     app.dependency_overrides.pop(get_current_user_id, None)
-    response = await client.post("/api/analyze", files=make_files(), data=make_data())
+    response = await client.post("/api/analyze", data=make_data())
     assert response.status_code == 401

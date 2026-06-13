@@ -12,6 +12,15 @@ async def get_saved_resumes(db: AsyncSession, user_id: str) -> list[Resume]:
     )
     return result.scalars().all()
 
+async def get_resume_text(db: AsyncSession, resume_id: str, user_id: str) -> str:
+    result = await db.execute(
+        select(Resume).where(Resume.id == resume_id, Resume.user_id == user_id)
+    )
+    resume = result.scalar_one_or_none()
+    if resume is None:
+        raise ValueError("Resume not found")
+    return resume.resume_text
+
 async def upload_resumes(db: AsyncSession, name: str, resume: UploadFile, user_id: str) -> Resume:
     name = clean_input(name, 200)
     try:
