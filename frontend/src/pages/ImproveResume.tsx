@@ -1,18 +1,19 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Upload, FileText, RotateCcw, Download } from "lucide-react";
+import { Loader2, RotateCcw, Download } from "lucide-react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
+import { ResumeSelect } from "@/components/ResumeSelect";
 import { authHeaders } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 
 export default function ImproveResume() {
   const [state, setState] = useState<AppState>("input");
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [selectedResumeId, setSelectedResumeId] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [jobTitle, setJobTitle] = useState("");
 
@@ -24,7 +25,6 @@ export default function ImproveResume() {
   const [keywordsAdded, setKeywordsAdded] = useState<string[]>([]);
   const [extraInfo, setExtraInfo] = useState("");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
 
   const downloadDocx = async () => {
@@ -41,7 +41,7 @@ export default function ImproveResume() {
     saveAs(blob, "improved_resume.docx");
   };
 
-  const canSubmit = resumeFile && jobDescription.trim() && jobTitle.trim();
+  const canSubmit = selectedResumeId && jobDescription.trim() && jobTitle.trim();
 
   const handleImprove = async () => {
     if (!canSubmit) return;
@@ -49,7 +49,7 @@ export default function ImproveResume() {
     setError(null);
 
     const formData = new FormData();
-    formData.append("resume", resumeFile!);
+    formData.append("resume_id", selectedResumeId);
     formData.append("job_title", jobTitle);
     formData.append("job_description", jobDescription);
     formData.append("extra_info", extraInfo);
@@ -91,7 +91,7 @@ export default function ImproveResume() {
 
   const reset = () => {
     setState("input");
-    setResumeFile(null);
+    setSelectedResumeId("");
     setJobDescription("");
     setJobTitle("");
     setImprovedResume("");
@@ -99,7 +99,6 @@ export default function ImproveResume() {
     setKeywordsAdded([]);
     setExtraInfo("");
     setError(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -110,7 +109,7 @@ export default function ImproveResume() {
             Improve Resume
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Upload your resume and get AI-powered improvements.
+            Pick one of your saved resumes and get AI-powered improvements.
           </p>
         </header>
 
@@ -203,36 +202,10 @@ export default function ImproveResume() {
           <Card className="bg-white/5 backdrop-blur-md border-white/10 animate-in fade-in duration-200">
             <CardContent>
               <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">
-                    Resume (PDF)
-                  </label>
-                  <div
-                    className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf"
-                      className="hidden"
-                      onChange={(e) =>
-                        setResumeFile(e.target.files?.[0] ?? null)
-                      }
-                    />
-                    {resumeFile ? (
-                      <div className="flex items-center justify-center gap-2 text-sm text-foreground">
-                        <FileText className="size-4" />
-                        {resumeFile.name}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                        <Upload className="size-5" />
-                        <span className="text-sm">Click to upload PDF</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ResumeSelect
+                  value={selectedResumeId}
+                  onChange={setSelectedResumeId}
+                />
 
                 <div>
                   <label className="block text-sm font-medium mb-1.5">

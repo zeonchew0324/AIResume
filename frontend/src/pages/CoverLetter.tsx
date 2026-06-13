@@ -1,25 +1,18 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Loader2,
-  Upload,
-  FileText,
-  RotateCcw,
-  Download,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Loader2, RotateCcw, Download, Copy, Check } from "lucide-react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
+import { ResumeSelect } from "@/components/ResumeSelect";
 import { authHeaders } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 
 export default function CoverLetter() {
   const [state, setState] = useState<AppState>("input");
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [selectedResumeId, setSelectedResumeId] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -28,10 +21,8 @@ export default function CoverLetter() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const canSubmit =
-    resumeFile &&
+    selectedResumeId &&
     jobTitle.trim() &&
     companyName.trim() &&
     jobDescription.trim();
@@ -46,7 +37,7 @@ export default function CoverLetter() {
     setError(null);
 
     const formData = new FormData();
-    formData.append("resume", resumeFile!);
+    formData.append("resume_id", selectedResumeId);
     formData.append("job_title", jobTitle);
     formData.append("company_name", companyName);
     formData.append("job_description", jobDescription);
@@ -85,14 +76,13 @@ export default function CoverLetter() {
 
   const reset = () => {
     setState("input");
-    setResumeFile(null);
+    setSelectedResumeId("");
     setJobTitle("");
     setCompanyName("");
     setJobDescription("");
     setExtraInfo("");
     setCoverLetter("");
     setError(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const downloadDocx = async () => {
@@ -200,37 +190,11 @@ export default function CoverLetter() {
           <Card className="bg-white/5 backdrop-blur-md border-white/10 animate-in fade-in duration-200">
             <CardContent>
               <div className="space-y-5">
-                {/* Resume upload */}
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">
-                    Resume (PDF)
-                  </label>
-                  <div
-                    className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-white/30 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf"
-                      className="hidden"
-                      onChange={(e) =>
-                        setResumeFile(e.target.files?.[0] ?? null)
-                      }
-                    />
-                    {resumeFile ? (
-                      <div className="flex items-center justify-center gap-2 text-sm text-foreground">
-                        <FileText className="size-4" />
-                        {resumeFile.name}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-1 text-muted-foreground">
-                        <Upload className="size-5" />
-                        <span className="text-sm">Click to upload PDF</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {/* Resume selection */}
+                <ResumeSelect
+                  value={selectedResumeId}
+                  onChange={setSelectedResumeId}
+                />
 
                 {/* Job Title + Company Name side by side */}
                 <div className="grid grid-cols-2 gap-4">
