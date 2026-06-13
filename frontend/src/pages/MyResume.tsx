@@ -33,9 +33,10 @@ type SavedResume = {
 };
 
 export default function MyResume() {
-  const { user } = useAuth();
-  const [listState, setListState] = useState<ListState>("loaded");
+  const { user, session } = useAuth();
+  const [listState, setListState] = useState<ListState>("loading");
   const [resumes, setResumes] = useState<SavedResume[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -49,17 +50,24 @@ export default function MyResume() {
 
   useEffect(() => {
     fetchResumes();
-  }, [user?.id]);
+    // Depend on the access token, not just the user id: an early request can
+    // 401 while the token is still being refreshed, and that must be retried
+    // once a valid token arrives — otherwise the list stays empty until the
+    // next manual action.
+  }, [user?.id, session?.access_token]);
 
   const fetchResumes = async () => {
     if (!user) return;
+    setListState("loading");
+    setLoadError(null);
     try {
       const res = await fetch("/api/resumes", { headers: await authHeaders() });
-      if (!res.ok) throw new Error();
-      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(`Failed to load resumes (${res.status})`);
+      const data = await res.json();
       setResumes(data.resumes ?? []);
-    } catch {
-      setResumes([]);
+    } catch (err) {
+      console.error("Failed to load resumes:", err);
+      setLoadError("Couldn't load your resumes. Please try again.");
     } finally {
       setListState("loaded");
     }
@@ -161,7 +169,22 @@ export default function MyResume() {
           </div>
         )}
 
-        {listState === "loaded" && resumes.length === 0 && (
+        {listState === "loaded" && resumes.length === 0 && loadError && (
+          <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
+            <AlertCircle className="size-10 opacity-20" />
+            <div className="text-center">
+              <p className="text-sm font-medium">{loadError}</p>
+              <button
+                onClick={fetchResumes}
+                className="text-xs mt-1 text-primary underline underline-offset-2"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
+        {listState === "loaded" && resumes.length === 0 && !loadError && (
           <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
             <BookMarked className="size-10 opacity-20" />
             <div className="text-center">

@@ -13,7 +13,7 @@ export type SavedResume = {
  * service pages. Refetches whenever the signed-in user changes.
  */
 export function useSavedResumes() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,10 +30,11 @@ export function useSavedResumes() {
     (async () => {
       try {
         const res = await fetch("/api/resumes", { headers: await authHeaders() });
-        if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error(`Failed to load resumes (${res.status})`);
         const data = await res.json();
         if (active) setResumes(data.resumes ?? []);
-      } catch {
+      } catch (err) {
+        console.error("Failed to load resumes:", err);
         if (active) setResumes([]);
       } finally {
         if (active) setLoading(false);
@@ -43,7 +44,9 @@ export function useSavedResumes() {
     return () => {
       active = false;
     };
-  }, [user?.id]);
+    // Depend on the access token too, so an early 401 (token still refreshing)
+    // is retried once a valid token is available.
+  }, [user?.id, session?.access_token]);
 
   return { resumes, loading };
 }
