@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from app.services.resume_service import get_saved_resumes, delete_resume_service, upload_resumes
 from app.db.database import get_db
+from app.auth import get_current_user_id
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import logging
@@ -15,7 +16,7 @@ async def upload_resume(
     db: AsyncSession = Depends(get_db),
     name: str = Form(...),
     resume: UploadFile = File(...),
-    user_id: str = Form(...),
+    user_id: str = Depends(get_current_user_id),
 ):
     try:
         row = await upload_resumes(db, name, resume, user_id)
@@ -28,7 +29,7 @@ async def upload_resume(
 
 
 @router.get("/api/resumes")
-async def list_resumes(user_id: str, db: AsyncSession = Depends(get_db)):
+async def list_resumes(db: AsyncSession = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     try:
         resumes = await get_saved_resumes(db, user_id)
         return {"resumes": [{
@@ -42,7 +43,7 @@ async def list_resumes(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.delete("/api/resumes/{resume_id}", status_code=204)
-async def delete_resume(resume_id: str, user_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_resume(resume_id: str, db: AsyncSession = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     try:
         if await delete_resume_service(db, resume_id, user_id):
             return None

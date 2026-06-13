@@ -4,6 +4,7 @@ from app.services.improve_resume import improve_resume_service
 from app.services.cover_letter import generate_coverletter
 from app.models.schemas import CoverLetterResponse, ResumeAnalysisResponse, ResumeImprovementResponse
 from app.limiter import limiter
+from app.auth import get_current_user_id
 from app.utils.input_cleaner import clean_input, MAX_EXTRA_INFO_LENGTH, MAX_JD_LENGTH, MAX_JOB_TITLE_LENGTH
 
 
@@ -21,9 +22,10 @@ async def health_check():
 @limiter.limit("5/minute")
 async def analyze_resume(
     request: Request,
-    resume: UploadFile = File(...), 
-    job_description: str = Form(...), 
+    resume: UploadFile = File(...),
+    job_description: str = Form(...),
     job_title: str = Form(...),
+    user_id: str = Depends(get_current_user_id),
 ) -> ResumeAnalysisResponse:
     try:
         job_description = clean_input(job_description, MAX_JD_LENGTH)
@@ -46,7 +48,8 @@ async def improve_resume(
     resume: UploadFile = File(...),
     job_description: str = Form(...),
     job_title: str = Form(...),
-    extra_info: str = Form("")
+    extra_info: str = Form(""),
+    user_id: str = Depends(get_current_user_id),
 ) -> ResumeImprovementResponse:
     try:
         extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH, required=False)
@@ -70,7 +73,8 @@ async def create_coverletter(
     job_title: str = Form(...),
     job_description: str = Form(...),
     company_name: str = Form(...),
-    extra_info: str = Form("")
+    extra_info: str = Form(""),
+    user_id: str = Depends(get_current_user_id),
 ) -> CoverLetterResponse:
     try:
         extra_info = clean_input(extra_info, MAX_EXTRA_INFO_LENGTH, required=False)

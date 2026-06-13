@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, FileText, RotateCcw } from "lucide-react";
 import { ScoreChart } from "@/components/ScoreChart";
 import { Progress } from "@/components/ui/progress";
+import { authHeaders } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 type ScoreBreakdown = {
@@ -49,6 +50,7 @@ export default function AnalyzeResume() {
     try {
       const res = await fetch("http://localhost:8000/api/analyze", {
         method: "POST",
+        headers: await authHeaders(),
         body: formData,
         signal: controller.signal,
       });
