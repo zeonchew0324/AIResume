@@ -3,14 +3,19 @@ from app.db.base import Base
 from dotenv import load_dotenv
 import ssl
 import os
+import certifi
 
 load_dotenv()
 
 DB_URL = os.getenv("DB_URL", "").replace("?sslmode=require", "")
 
-ssl_ctx = ssl.create_default_context()
-ssl_ctx.check_hostname = False
-ssl_ctx.verify_mode = ssl.CERT_NONE
+# Verify the database server's TLS certificate (prevents man-in-the-middle on
+# the DB connection). Defaults to the certifi CA bundle; set DB_SSL_ROOT_CERT to
+# a specific root cert file (e.g. Supabase's downloaded CA) if your endpoint's
+# certificate does not chain to a public root.
+ssl_ctx = ssl.create_default_context(
+    cafile=os.getenv("DB_SSL_ROOT_CERT") or certifi.where()
+)
 
 engine = create_async_engine(
     DB_URL,
