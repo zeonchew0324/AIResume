@@ -32,28 +32,30 @@ async def ats_chain(job_title: str, job_description: str, resume_text: str) -> d
     node_1 = prompt_1 | model.with_structured_output(ExtractionResponse)
     node_2 = prompt_2 | model.with_structured_output(SynthesisResponse)
 
-    try:
-        # Node 1: extract the per-category breakdown and missing keywords.
-        extracted: ExtractionResponse = await asyncio.wait_for(
-            node_1.ainvoke({
-                "job_title": job_title,
-                "job_description": job_description,
-                "resume_text": resume_text,
-            }),
-            timeout=30.0,  # seconds
-        )
+    # Don't catch-and-wrap here: let the real failure (OpenAI error,
+    # asyncio.TimeoutError, etc.) propagate with its own type so the route can
+    # map it to the correct HTTP status. Converting everything to ValueError
+    # would make genuine server failures look like client (400) errors.
 
-        # Node 2: synthesise the final score, feedback, and suggestions from
-        # the extraction report.
-        synthesis: SynthesisResponse = await asyncio.wait_for(
-            node_2.ainvoke({
-                "job_title": job_title,
-                "extracted_data": extracted.model_dump_json(),
-            }),
-            timeout=30.0,  # seconds
-        )
-    except Exception as e:
-        raise ValueError(f"Error during ATS analysis: {str(e)}") from e
+    # Node 1: extract the per-category breakdown and missing keywords.
+    extracted: ExtractionResponse = await asyncio.wait_for(
+        node_1.ainvoke({
+            "job_title": job_title,
+            "job_description": job_description,
+            "resume_text": resume_text,
+        }),
+        timeout=30.0,  # seconds
+    )
+
+    # Node 2: synthesise the final score, feedback, and suggestions from
+    # the extraction report.
+    synthesis: SynthesisResponse = await asyncio.wait_for(
+        node_2.ainvoke({
+            "job_title": job_title,
+            "extracted_data": extracted.model_dump_json(),
+        }),
+        timeout=30.0,  # seconds
+    )
 
     # Merge both nodes' outputs into the shape ResumeAnalysisResponse expects.
     return {

@@ -11,8 +11,8 @@ from app.auth import get_current_user_id
 from app.utils.input_cleaner import clean_input, MAX_EXTRA_INFO_LENGTH, MAX_JD_LENGTH, MAX_JOB_TITLE_LENGTH
 
 
-import logging 
-import traceback
+import asyncio
+import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,11 +38,13 @@ async def analyze_resume(
         result = await analyze_resume_service(resume_text, job_description, job_title)
         return result
     except ValueError as e:
-        logger.error(f"Validation error in analyze: {str(e)}")
+        logger.warning(f"Validation error in analyze: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error occurred while analyzing resume: {str(e)}")
-        logger.error(traceback.format_exc())
+    except asyncio.TimeoutError:
+        logger.warning("Analyze timed out waiting for the AI model")
+        raise HTTPException(status_code=504, detail="The AI model took too long. Please try again.")
+    except Exception:
+        logger.exception("Error occurred while analyzing resume")
         raise HTTPException(status_code=500, detail="Analysis failed. Please try again.")
 
 
@@ -65,11 +67,13 @@ async def improve_resume(
         result = await improve_resume_service(resume_text, job_description, job_title, extra_info)
         return result
     except ValueError as e:
-        logger.error(f"Validation error in improve: {str(e)}")
+        logger.warning(f"Validation error in improve: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error occurred while improving resume: {str(e)}")
-        logger.error(traceback.format_exc())
+    except asyncio.TimeoutError:
+        logger.warning("Improve timed out waiting for the AI model")
+        raise HTTPException(status_code=504, detail="The AI model took too long. Please try again.")
+    except Exception:
+        logger.exception("Error occurred while improving resume")
         raise HTTPException(status_code=500, detail="Improvement failed. Please try again.")
     
 @router.post("/api/coverletter")
@@ -93,10 +97,12 @@ async def create_coverletter(
         cover_letter = await generate_coverletter(resume_text, job_title, job_description, company_name, extra_info)
         return CoverLetterResponse(cover_letter=cover_letter)
     except ValueError as e:
-        logger.error(f"Validation error in create_coverletter: {str(e)}")
+        logger.warning(f"Validation error in create_coverletter: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error occurred while creating cover letter: {str(e)}")
-        logger.error(traceback.format_exc())
+    except asyncio.TimeoutError:
+        logger.warning("Cover letter generation timed out waiting for the AI model")
+        raise HTTPException(status_code=504, detail="The AI model took too long. Please try again.")
+    except Exception:
+        logger.exception("Error occurred while creating cover letter")
         raise HTTPException(status_code=500, detail="Cover letter generation failed. Please try again.")
     
