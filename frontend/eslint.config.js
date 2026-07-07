@@ -19,5 +19,10 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Dev-only HMR concern; shadcn ui files and context modules legitimately
+      // export variants/hooks alongside components. Keep the signal, don't fail CI.
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    },
   },
 ])
