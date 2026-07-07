@@ -55,7 +55,7 @@ export default function ImproveResume() {
     formData.append("extra_info", extraInfo);
 
     try {
-      const res = await fetch("http://localhost:8000/api/improve", {
+      const res = await fetch("/api/improve", {
         method: "POST",
         headers: await authHeaders(),
         body: formData,
@@ -73,7 +73,6 @@ export default function ImproveResume() {
       }
 
       const data = await res.json();
-      console.log("API Response:", data);
       setImprovedResume(data.improved_resume);
       setChanges(data.changes);
       setKeywordsAdded(data.keywords_added);

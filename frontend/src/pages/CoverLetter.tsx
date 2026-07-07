@@ -44,7 +44,7 @@ export default function CoverLetter() {
     formData.append("extra_info", extraInfo);
 
     try {
-      const res = await fetch("http://localhost:8000/api/coverletter", {
+      const res = await fetch("/api/coverletter", {
         method: "POST",
         headers: await authHeaders(),
         body: formData,

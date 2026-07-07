@@ -47,7 +47,7 @@ export default function AnalyzeResume() {
     const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
 
     try {
-      const res = await fetch("http://localhost:8000/api/analyze", {
+      const res = await fetch("/api/analyze", {
         method: "POST",
         headers: await authHeaders(),
         body: formData,
@@ -67,7 +67,6 @@ export default function AnalyzeResume() {
       }
 
       const data = await res.json();
-      console.log("API Response:", data);
       setMatchScore(data.match_score);
       setFeedback(data.feedback);
       setSuggestions(data.suggestions);
