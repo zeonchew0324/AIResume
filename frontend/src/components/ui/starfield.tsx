@@ -50,8 +50,6 @@ export function StarfieldBackground({
     let animationId: number;
     let tick = 0;
 
-    const _centerX = width / 2;
-    const _centerY = height / 2;
     const maxDepth = 1500;
 
     // Create stars
