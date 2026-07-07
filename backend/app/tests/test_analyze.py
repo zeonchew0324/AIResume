@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from unittest.mock import patch
 from app.main import app
@@ -62,3 +64,26 @@ async def test_analyze_requires_auth(client):
     app.dependency_overrides.pop(get_current_user_id, None)
     response = await client.post("/api/analyze", data=make_data())
     assert response.status_code == 401
+
+# Test 6: AI model timeout → 504
+@patch("app.routes.ats.analyze_resume_service", side_effect=asyncio.TimeoutError())
+async def test_analyze_timeout(mock_service, client):
+    response = await client.post("/api/analyze", data=make_data())
+    assert response.status_code == 504
+    assert response.json()["detail"] == "The AI model took too long. Please try again."
+
+# Test 7: Resume id that doesn't exist (or belongs to another user) → 400
+@patch("app.routes.ats.get_resume_text", side_effect=ValueError("Resume not found"))
+async def test_analyze_resume_not_found(mock_lookup, client):
+    response = await client.post("/api/analyze", data=make_data())
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Resume not found"
+
+# Test 8: Whitespace-only job description → 400 before any AI call
+@patch("app.routes.ats.analyze_resume_service", return_value=MOCK_ANALYSIS)
+async def test_analyze_blank_job_description(mock_service, client):
+    data = make_data()
+    data["job_description"] = "   "
+    response = await client.post("/api/analyze", data=data)
+    assert response.status_code == 400
+    mock_service.assert_not_called()

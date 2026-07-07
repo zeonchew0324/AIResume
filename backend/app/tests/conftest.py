@@ -6,11 +6,15 @@ from app.main import app
 from app.auth import get_current_user_id
 from app.db.database import get_db
 
-# Disable rate limiting for all tests
+# Disable rate limiting for all tests. Patching limiter.limit does not work
+# because the decorator is applied at import time; slowapi checks
+# limiter.enabled on each request, so toggling that flag is the reliable way.
 @pytest.fixture(autouse=True)
 def disable_rate_limit():
-    with patch("app.routes.ats.limiter.limit", return_value=lambda f: f):
-        yield
+    from app.limiter import limiter
+    limiter.enabled = False
+    yield
+    limiter.enabled = True
 
 # Treat every request as authenticated unless a test removes the override
 @pytest.fixture(autouse=True)
