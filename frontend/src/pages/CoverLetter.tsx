@@ -6,7 +6,7 @@ import { Loader2, RotateCcw, Download, Copy, Check } from "lucide-react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
 import { ResumeSelect } from "@/components/ResumeSelect";
-import { authHeaders } from "@/lib/api";
+import { postForm, errorMessage } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 
@@ -44,32 +44,15 @@ export default function CoverLetter() {
     formData.append("extra_info", extraInfo);
 
     try {
-      const res = await fetch("http://localhost:8000/api/coverletter", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const errorDetail = body.detail ?? "";
-        if (errorDetail === "Resume is empty or unreadable") {
-          throw new Error(
-            "We couldn't read your PDF. Make sure it contains selectable text, not a scanned image.",
-          );
-        }
-        throw new Error("Generation failed. Please try again.");
-      }
-
-      const data = await res.json();
+      const data = await postForm<{ cover_letter: string }>(
+        "/api/coverletter",
+        formData,
+        { fallbackError: "Generation failed. Please try again." },
+      );
       setCoverLetter(data.cover_letter);
       setState("results");
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.";
-      setError(message);
+      setError(errorMessage(err));
       setState("input");
     }
   };

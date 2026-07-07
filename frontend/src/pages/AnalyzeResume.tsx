@@ -7,7 +7,7 @@ import { Loader2, RotateCcw } from "lucide-react";
 import { ScoreChart } from "@/components/ScoreChart";
 import { Progress } from "@/components/ui/progress";
 import { ResumeSelect } from "@/components/ResumeSelect";
-import { authHeaders } from "@/lib/api";
+import { postForm, errorMessage } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 type ScoreBreakdown = {
@@ -43,31 +43,16 @@ export default function AnalyzeResume() {
     formData.append("job_title", jobTitle);
     formData.append("job_description", jobDescription);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
-
     try {
-      const res = await fetch("http://localhost:8000/api/analyze", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: formData,
-        signal: controller.signal,
+      const data = await postForm<{
+        match_score: number;
+        feedback: string;
+        suggestions: Array<{ focus_area: string; advice: string }>;
+        missing_keywords: string[];
+        score_breakdown: ScoreBreakdown[];
+      }>("/api/analyze", formData, {
+        fallbackError: "Analysis failed. Please try again.",
       });
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const errorDetail = body.detail ?? "";
-        if (errorDetail === "Resume is empty or unreadable") {
-          throw new Error(
-            "We couldn't read your PDF. Make sure it contains selectable text, not a scanned image.",
-          );
-        }
-        throw new Error("Analysis failed. Please try again.");
-      }
-
-      const data = await res.json();
-      console.log("API Response:", data);
       setMatchScore(data.match_score);
       setFeedback(data.feedback);
       setSuggestions(data.suggestions);
@@ -75,18 +60,7 @@ export default function AnalyzeResume() {
       setScoreBreakdown(data.score_breakdown);
       setState("results");
     } catch (err) {
-      // Handle Request Timeout Error
-      console.error(err);
-      if (err instanceof Error && err.name === "AbortError") {
-        setError("Request Timed Out. Please Try Again.");
-        return;
-      }
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.";
-      setError(message);
+      setError(errorMessage(err));
       setState("input");
     }
   };

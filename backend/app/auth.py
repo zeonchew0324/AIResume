@@ -4,7 +4,7 @@ import logging
 import jwt
 from jwt import PyJWKClient
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.concurrency import run_in_threadpool
 
@@ -12,11 +12,8 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Base URL of the Supabase project, e.g. https://xxxx.supabase.co
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 JWT_AUDIENCE = "authenticated"
-# Supabase signs access tokens with asymmetric keys served from the project's
-# JWKS endpoint (ES256 by default; RS256 for some projects).
 JWT_ALGORITHMS = ["ES256", "RS256"]
 
 # auto_error=False so we can return a clean 401 instead of FastAPI's default 403.
@@ -40,6 +37,7 @@ def _get_jwks_client() -> PyJWKClient | None:
 
 
 async def get_current_user_id(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> str:
     """Validate the Supabase access token and return the authenticated user id.
@@ -78,4 +76,6 @@ async def get_current_user_id(
         logger.warning("JWT is valid but missing 'sub' claim")
         raise _UNAUTHORIZED
 
+    # The rate limiter keys on this (see app.limiter.user_or_ip).
+    request.state.user_id = user_id
     return user_id
