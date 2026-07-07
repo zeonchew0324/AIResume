@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
+    "@sentry/react": "^10.63.0",
     "@supabase/supabase-js": "^2.105.3",
     "@tailwindcss/vite": "^4.2.2",
     "class-variance-authority": "^0.7.1",
