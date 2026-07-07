@@ -7,7 +7,7 @@ import { Loader2, RotateCcw, Download } from "lucide-react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
 import { ResumeSelect } from "@/components/ResumeSelect";
-import { authHeaders } from "@/lib/api";
+import { postForm, errorMessage } from "@/lib/api";
 
 type AppState = "input" | "loading" | "results";
 
@@ -55,35 +55,19 @@ export default function ImproveResume() {
     formData.append("extra_info", extraInfo);
 
     try {
-      const res = await fetch("/api/improve", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: formData,
+      const data = await postForm<{
+        improved_resume: string;
+        changes: Array<{ section: string; change: string }>;
+        keywords_added: string[];
+      }>("/api/improve", formData, {
+        fallbackError: "Improvement failed. Please try again.",
       });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const errorDetail = body.detail ?? "";
-        if (errorDetail === "Resume is empty or unreadable") {
-          throw new Error(
-            "We couldn't read your PDF. Make sure it contains selectable text, not a scanned image.",
-          );
-        }
-        throw new Error("Action failed. Please try again.");
-      }
-
-      const data = await res.json();
       setImprovedResume(data.improved_resume);
       setChanges(data.changes);
       setKeywordsAdded(data.keywords_added);
       setState("results");
     } catch (err) {
-      console.error(err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.";
-      setError(message);
+      setError(errorMessage(err));
       setState("input");
     }
   };
