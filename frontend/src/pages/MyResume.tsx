@@ -83,6 +83,11 @@ export default function MyResume() {
 
   const handleUpload = async () => {
     if (!canUpload) return;
+    if (resumeFile!.size > 5 * 1024 * 1024) {
+      setUploadError("File is too large (max 5 MB).");
+      setUploadState("error");
+      return;
+    }
     setUploadState("uploading");
     setUploadError(null);
 
